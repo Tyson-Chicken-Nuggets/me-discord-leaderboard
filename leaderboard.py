@@ -358,7 +358,7 @@ class LeaderBoyt:
         board_embed.set_author(name='LeaderBOYT', url='https://github.com/itsmehemant123/me-discord-leaderboard',
                                icon_url='https://photos.hd92.me/images/2018/03/23/martin-shkreli.png')
 
-        metric_list = 'Total Upvotes\nTotal Downvotes\nAverage # of Upvotes\nAverage # of Downvotes\n%ge of Upvotes'
+        metric_list = 'Total Upvotes\nTotal Downvotes\nAverage # of Upvotes\nAverage # of Downvotes   \n%ge of Upvotes'
         stat_list = str(total_doots[0]) + '\n' + \
             str(total_doots[1]) + '\n' + '%.2f' % (total_doots[2]) + '\n' + \
             '%.2f' % (total_doots[3]) + '\n' + '%.2f' % ((total_doots[0]/(total_doots[0] + total_doots[1])) * 100) + ' %'
