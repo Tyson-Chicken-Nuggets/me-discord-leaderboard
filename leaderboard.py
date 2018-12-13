@@ -490,10 +490,10 @@ class LeaderBoyt:
                 Message.server_id == db_server.id, Message.created_at > start_date).group_by(Message.user_id).order_by(((cast(func.sum(Message.rx1_count), Float) + self.stat_dist_data['alpha']) / (cast(func.sum(Message.rx1_count), Float) + cast(func.sum(Message.rx2_count), Float) + self.stat_dist_data['alpha'] + self.stat_dist_data['beta'])).asc()).limit(message_count).all()
             heading = 'Shit ' + heading + ' by beta distribution'
         elif (method == 'compare_up'):
-            memers = self.session.query(func.sum(Message.rx1_count), func.sum(Message.rx2_count)).filter(
-                Message.server_id == db_server.id, Message.created_at > start_date, Message.user_id == db_user.id).group_by(Message.user_id).all()
             server = self.session.query(func.sum(Message.rx1_count), func.sum(Message.rx2_count), func.avg(Message.rx1_count), func.avg(Message.rx2_count)).filter(
                 Message.server_id == db_server.id, Message.created_at > start_date)
+            memers = self.session.query(func.sum(Message.rx1_count), func.sum(Message.rx2_count)).filter(Message.server_id == db_server.id, Message.created_at > start_date).group_by(
+                Message.user_id).order_by((server[2] * (func.sum(Message.rx1_count) / server[0])) / (server[3] * (func.sum(Message.rx2_count) / server[1]))).limit(message_count).all()
             heading = 'Top ' + heading + ' by comparison'
 """
 for now, no bottom
