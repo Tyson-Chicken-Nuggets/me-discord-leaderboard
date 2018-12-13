@@ -338,6 +338,34 @@ class LeaderBoyt:
 
         await self.bot.send_message(ctx.message.channel, embed=self.generate_memer_board(ctx, 'beta_down', lim, is_span))
         logging.info('Get Shit memers by beta dist.')
+        
+    @commands.command(pass_context=True, no_pm=True)
+    async def ctop(self, ctx, lim: str = '10'):
+        if (not await self.check_and_dismiss(ctx)):
+            return
+        
+        is_span = False
+        if (not self.is_int(lim)):
+            is_span = True
+        
+        await self.bot.send_message(ctx.message.channel, embed=self.generate_memer_board(ctx, 'compare_up', lim, is_span))
+        logging.info('Get Top memers by comparison')
+    
+    """
+    for now, no bottom
+    
+    @commands.command(pass_context=True, no_pm=True)
+    async def cbottom(self, ctx, lim: str = '10'):
+        if (not await self.check_and_dismiss(ctx)):
+            return
+        
+        is_span = False
+        if (not self.is_int(lim)):
+            is_span = True
+    
+        await self.bot.send_message(ctx.message.channel, embed=self.generate_memer_board(ctx, 'compare_down', lim, is_span))
+        logging.info('Get Shit memers by comparison')
+        """
     
     @commands.command(pass_context=True, no_pm=True)
     async def stats(self, ctx, target: str = ''):
@@ -455,13 +483,29 @@ class LeaderBoyt:
             memers = self.session.query(Message.user_id, (cast(func.sum(Message.rx1_count), Float) + self.stat_dist_data['alpha']) / (cast(func.sum(Message.rx1_count), Float) + cast(func.sum(Message.rx2_count), Float) + self.stat_dist_data['alpha'] + self.stat_dist_data['beta'])).filter(
                 Message.server_id == db_server.id, Message.created_at > start_date).group_by(Message.user_id).order_by(((cast(func.sum(Message.rx1_count), Float) + self.stat_dist_data['alpha']) / (cast(func.sum(Message.rx1_count), Float) + cast(func.sum(Message.rx2_count), Float) + self.stat_dist_data['alpha'] + self.stat_dist_data['beta'])).desc()).limit(message_count).all()
             heading = 'Top ' + heading + ' by beta distribution'
-        else: # if (method == 'beta_down'):
+        elif (method == 'beta_down'):
             if (self.stat_dist_data is None or (datetime.now() - self.stat_dist_data['timestamp']).days > 14):
                 self.refresh_beta_dist(db_server)
             memers = self.session.query(Message.user_id, (cast(func.sum(Message.rx1_count), Float) + self.stat_dist_data['alpha']) / (cast(func.sum(Message.rx1_count), Float) + cast(func.sum(Message.rx2_count), Float) + self.stat_dist_data['alpha'] + self.stat_dist_data['beta'])).filter(
                 Message.server_id == db_server.id, Message.created_at > start_date).group_by(Message.user_id).order_by(((cast(func.sum(Message.rx1_count), Float) + self.stat_dist_data['alpha']) / (cast(func.sum(Message.rx1_count), Float) + cast(func.sum(Message.rx2_count), Float) + self.stat_dist_data['alpha'] + self.stat_dist_data['beta'])).asc()).limit(message_count).all()
             heading = 'Shit ' + heading + ' by beta distribution'
-        
+        elif (method == 'compare_up'):
+            memers = self.session.query(func.sum(Message.rx1_count), func.sum(Message.rx2_count)).filter(
+                Message.server_id == db_server.id, Message.created_at > start_date, Message.user_id == db_user.id).group_by(Message.user_id).all()
+            server = self.session.query(func.sum(Message.rx1_count), func.sum(Message.rx2_count), func.avg(Message.rx1_count), func.avg(Message.rx2_count)).filter(
+                Message.server_id == db_server.id, Message.created_at > start_date)
+            heading = 'Top ' + heading + ' by comparison'
+"""
+for now, no bottom
+
+        else: # if (method == 'compare_down'):
+            memers = self.session.query(func.sum(Message.rx1_count), func.sum(Message.rx2_count)).filter(
+                Message.server_id == db_server.id, Message.created_at > start_date, Message.user_id == db_user.id).group_by(Message.user_id).all()
+            server = self.session.query(func.sum(Message.rx1_count), func.sum(Message.rx2_count), func.avg(Message.rx1_count)).filter(
+                Message.server_id == db_server.id, Message.created_at > start_date)
+            heading = 'Shit ' + heading + ' by comparison'
+"""
+
         board_embed = discord.Embed(title='Leaderboard')
         board_embed.set_author(name='LeaderBOYT', url='https://github.com/itsmehemant123/me-discord-leaderboard', icon_url='https://photos.hd92.me/images/2018/03/23/martin-shkreli.png')
 
@@ -495,6 +539,9 @@ class LeaderBoyt:
             elif (method == 'beta_top' or method == 'beta_down'):
                 stat_list += '%.2f' % (memer[1] * 100) + '% ' + \
                     ' Quality\n'
+            elif (method == 'compare_up'):
+                stat_list += '%.2f' % ((server[2] * (memer[0] / server[0])) / (server[3] * (memer[1] / server[1]))) + 'points\n'
+            #elif (method == 'compare_down'):
 
         board_embed.add_field(name=heading, value=user_list, inline=True)
         board_embed.add_field(name='Stats', value=stat_list, inline=True)
